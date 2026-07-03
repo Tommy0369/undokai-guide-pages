@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#087a45">
+  <meta name="description" content="大運動会の全競技作戦をスマホで確認できるチーム用ガイド">
+  <title>飛べ！兵馬とヨーイどんまるズ｜大運動会 作戦スライド</title>
+  <style>
+    :root {
+      --green-950: #053d27;
+      --green-900: #075a37;
+      --green-700: #07894c;
+      --green-500: #17aa5f;
+      --green-100: #dff6e8;
+      --yellow: #ffd83d;
+      --yellow-soft: #fff4b8;
+      --white: #fffef8;
+      --ink: #17382b;
+      --muted: #557164;
+      --shadow: 0 10px 28px rgba(4, 73, 42, .15);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      color: var(--ink);
+      background: #d9efe1;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; }
+
+    .hidden { display: none !important; }
+
+    .deck {
+      display: flex;
+      width: 100%;
+      height: 100dvh;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+
+    .deck::-webkit-scrollbar { display: none; }
+
+    .slide {
+      position: relative;
+      flex: 0 0 100%;
+      width: 100%;
+      height: 100dvh;
+      overflow-y: auto;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      background: var(--white);
+      isolation: isolate;
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 10% 12%, rgba(255, 216, 61, .28) 0 7px, transparent 8px),
+        radial-gradient(circle at 91% 23%, rgba(23, 170, 95, .18) 0 6px, transparent 7px),
+        linear-gradient(180deg, #f7fff9 0%, #fffef8 42%, #eff9f2 100%);
+    }
+
+    .slide-inner {
+      position: relative;
+      width: min(100%, 720px);
+      min-height: 100%;
+      margin: 0 auto;
+      padding: max(18px, env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom));
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .event-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      color: #fff;
+      background: var(--green-900);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      box-shadow: 0 5px 12px rgba(5, 90, 55, .18);
+    }
+
+    .page-no {
+      color: var(--green-900);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+
+    .team-name {
+      margin: 0 0 14px;
+      padding: 9px 11px;
+      border: 2px solid rgba(7, 137, 76, .15);
+      border-radius: 15px;
+      text-align: center;
+      color: var(--green-900);
+      background: rgba(255, 255, 255, .86);
+      box-shadow: 0 5px 16px rgba(5, 90, 55, .08);
+      font-size: clamp(14px, 4vw, 19px);
+      font-weight: 950;
+      line-height: 1.4;
+    }
+
+    .hero {
+      position: relative;
+      margin: 0 0 16px;
+      padding: 18px 18px 20px;
+      overflow: hidden;
+      border-radius: 24px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--green-950), var(--green-700));
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -28px;
+      bottom: -54px;
+      width: 150px;
+      height: 150px;
+      border: 13px solid rgba(255, 216, 61, .32);
+      border-radius: 50%;
+    }
+
+    .hero-kicker {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 3px;
+      color: var(--yellow);
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: .1em;
+    }
+
+    .hero h1 {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: clamp(29px, 8.6vw, 46px);
+      font-weight: 1000;
+      line-height: 1.1;
+      letter-spacing: -.04em;
+    }
+
+    .hero-meta {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      margin-top: 11px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,.34);
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .motif {
+      position: absolute;
+      z-index: 2;
+      top: 16px;
+      right: 17px;
+      font-size: 36px;
+      filter: drop-shadow(0 4px 4px rgba(0,0,0,.12));
+      transform: rotate(8deg);
+    }
+
+    .motif.hachimaki {
+      top: 20px;
+      right: 14px;
+      padding: 7px 17px;
+      border-right: 15px solid #e83b35;
+      border-left: 15px solid #e83b35;
+      color: #d62f2a;
+      background: #fff;
+      font-size: 17px;
+      font-weight: 1000;
+      letter-spacing: .08em;
+      filter: drop-shadow(0 4px 4px rgba(0,0,0,.13));
+      transform: rotate(6deg);
+    }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 19px 2px 10px;
+      color: var(--green-950);
+      font-size: 15px;
+      font-weight: 950;
+    }
+
+    .section-label::before {
+      content: "";
+      width: 5px;
+      height: 21px;
+      border-radius: 99px;
+      background: var(--yellow);
+      box-shadow: 5px 0 0 var(--green-500);
+    }
+
+    .cards { display: grid; gap: 12px; }
+
+    .card {
+      position: relative;
+      padding: 15px;
+      border: 1px solid rgba(7, 137, 76, .12);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .96);
+      box-shadow: 0 8px 22px rgba(6, 82, 46, .10);
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      margin: 0;
+      color: var(--green-950);
+      font-size: 19px;
+      font-weight: 1000;
+    }
+
+    .card-tag {
+      padding: 4px 9px;
+      border-radius: 999px;
+      color: var(--green-950);
+      background: var(--yellow-soft);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .member-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .member {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      min-height: 48px;
+      padding: 7px 9px 7px 7px;
+      border-radius: 14px;
+      background: #f0f9f3;
+      font-size: clamp(13px, 3.7vw, 16px);
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .number {
+      display: grid;
+      flex: 0 0 32px;
+      width: 32px;
+      height: 32px;
+      margin-right: 8px;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--green-700);
+      font-size: 18px;
+      font-weight: 1000;
+      box-shadow: 0 3px 0 var(--green-950);
+    }
+
+    .strategy {
+      position: relative;
+      margin: 16px 0 0;
+      padding: 15px 15px 15px 48px;
+      border: 2px solid var(--yellow);
+      border-radius: 17px;
+      color: var(--green-950);
+      background: linear-gradient(135deg, #fff9d5, #fffef8);
+      font-size: clamp(15px, 4.2vw, 18px);
+      font-weight: 950;
+      line-height: 1.55;
+    }
+
+    .strategy::before {
+      content: "📣";
+      position: absolute;
+      top: 13px;
+      left: 13px;
+      font-size: 24px;
+    }
+
+    .footer-message {
+      margin-top: 18px;
+      padding: 16px 13px;
+      border-top: 3px solid var(--green-700);
+      text-align: center;
+      color: var(--green-950);
+      background: rgba(223, 246, 232, .7);
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.65;
+    }
+
+    .footer-message strong {
+      display: block;
+      color: var(--green-700);
+      font-size: 14px;
+    }
+
+    /* 障害物リレー */
+    .obstacle .hero { background: linear-gradient(135deg, #087947, #15a55e); }
+    .obstacle .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .obstacle .member-list { grid-template-columns: 1fr; }
+    .obstacle .card:nth-child(2) { transform: translateY(12px); }
+    .obstacle .card::after {
+      content: "";
+      position: absolute;
+      left: 15px;
+      right: 15px;
+      bottom: -5px;
+      height: 8px;
+      border-radius: 99px;
+      background: repeating-linear-gradient(90deg, var(--yellow) 0 18px, #fff 18px 36px);
+    }
+
+    /* 王様ドッジボール */
+    .dodge::before {
+      background:
+        radial-gradient(circle at 92% 18%, rgba(255,216,61,.32) 0 8px, transparent 9px),
+        radial-gradient(circle at 7% 42%, rgba(7,137,76,.15) 0 7px, transparent 8px),
+        linear-gradient(180deg, #fffdf1, #fffef8 43%, #eff9f2);
+    }
+
+    .king-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: -2px 0 17px;
+      padding: 13px 15px;
+      border: 3px solid #f0bd00;
+      border-radius: 18px;
+      color: #563d00;
+      background: linear-gradient(135deg, #fff8c8, #ffd83d);
+      box-shadow: 0 7px 0 #d9a600, 0 13px 22px rgba(123, 86, 0, .15);
+      font-size: clamp(21px, 6vw, 29px);
+      font-weight: 1000;
+      transform: rotate(-.5deg);
+    }
+
+    .king-banner .crown { font-size: 29px; }
+
+    .match-grid { display: grid; gap: 13px; }
+
+    .dodge .member-list,
+    .tug .member-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .dodge .member,
+    .tug .member {
+      min-height: 42px;
+      padding: 5px 6px 5px 5px;
+      border-radius: 12px;
+      font-size: clamp(10px, 2.85vw, 13px);
+      letter-spacing: -.04em;
+    }
+
+    .dodge .number,
+    .tug .number {
+      flex-basis: 27px;
+      width: 27px;
+      height: 27px;
+      margin-right: 5px;
+      font-size: 14px;
+    }
+
+    .dodge .member.king {
+      color: #563d00;
+      background: var(--yellow-soft);
+      outline: 2px solid var(--yellow);
+    }
+
+    .dodge .member.king .number {
+      color: #563d00;
+      background: var(--yellow);
+      box-shadow: 0 3px 0 #c99a00;
+    }
+
+    /* 綱引き */
+    .tug .hero { background: linear-gradient(135deg, #073f2a, #0b7445); }
+    .tug-card { overflow: hidden; }
+    .tug-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 7px;
+      background: repeating-linear-gradient(180deg, #c99946 0 7px, #f4d287 7px 14px);
+    }
+
+    .direction {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+    }
+
+    .rope-line {
+      position: relative;
+      height: 8px;
+      margin-bottom: 11px;
+      border-radius: 99px;
+      background: repeating-linear-gradient(90deg, #a16e28 0 8px, #e2ba71 8px 16px);
+      box-shadow: inset 0 1px 2px rgba(70,38,0,.35);
+    }
+
+    .rope-line::after {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      width: 5px;
+      height: 20px;
+      background: #e5423a;
+      transform: translateX(-50%);
+    }
+
+    /* ムカデ */
+    .centipede .hero { background: linear-gradient(135deg, #09603b, #16a760); }
+    .centipede .cards { gap: 14px; }
+    .centipede-card {
+      padding-left: 20px;
+      overflow: hidden;
+    }
+
+    .centipede-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 9px;
+      background: var(--stripe, var(--green-700));
+    }
+
+    .centipede-card:nth-child(2) { --stripe: var(--yellow); }
+    .centipede-card:nth-child(3) { --stripe: #0b6040; }
+    .centipede .member-list { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+    .centipede .member {
+      flex-direction: column;
+      justify-content: center;
+      min-height: 85px;
+      padding: 7px 3px;
+      text-align: center;
+      font-size: clamp(10px, 2.8vw, 13px);
+      word-break: keep-all;
+    }
+
+    .centipede .number {
+      flex-basis: 30px;
+      width: 30px;
+      height: 30px;
+      margin: 0 0 7px;
+      font-size: 16px;
+    }
+
+    /* 固定ナビ */
+    .nav {
+      position: fixed;
+      z-index: 20;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 13px;
+      min-height: 65px;
+      padding: 9px 12px calc(9px + env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.96) 24%);
+      pointer-events: none;
+    }
+
+    .nav-button {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--green-900);
+      box-shadow: 0 5px 14px rgba(5,90,55,.24);
+      font-size: 22px;
+      font-weight: 900;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
+    .nav-button:disabled { opacity: .25; }
+
+    .dots {
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 4px 14px rgba(5,90,55,.12);
+      pointer-events: auto;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: #a9cbb7;
+      cursor: pointer;
+    }
+
+    .dot.active { width: 27px; border-radius: 99px; background: var(--green-700); }
+
+    .swipe-hint {
+      margin: 11px 0 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .access-note {
+      position: fixed;
+      z-index: 30;
+      top: max(10px, env(safe-area-inset-top));
+      left: 50%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: min(95vw, 780px);
+      padding: 10px 12px;
+      border: 1px solid rgba(7, 137, 76, .2);
+      border-radius: 12px;
+      color: var(--green-950);
+      background: rgba(255, 255, 255, .95);
+      box-shadow: 0 8px 20px rgba(6, 82, 46, .14);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.4;
+      transform: translateX(-50%);
+      backdrop-filter: blur(6px);
+    }
+
+    .access-note.hidden {
+      display: none;
+    }
+
+    .access-note.is-warning {
+      border-color: rgba(200, 70, 30, .24);
+      background: rgba(255, 250, 245, .96);
+    }
+
+    .copy-link {
+      flex: 0 0 auto;
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 0;
+      border-radius: 9px;
+      color: #fff;
+      background: var(--green-900);
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    @media (min-width: 640px) {
+      .slide-inner { padding-right: 28px; padding-left: 28px; }
+      .match-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .centipede .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .centipede .member-list { grid-template-columns: 1fr; }
+      .centipede .member { flex-direction: row; justify-content: flex-start; min-height: 52px; text-align: left; }
+      .centipede .number { margin: 0 8px 0 0; }
+    }
+
+    @media (max-width: 430px) {
+      .obstacle .cards { grid-template-columns: 1fr; }
+      .obstacle .card:nth-child(2) { transform: none; }
+      .dodge .member-list,
+      .tug .member-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .centipede .member-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .access-note {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+
+    @media print {
+      @page { size: A4 portrait; margin: 8mm; }
+      html, body { height: auto; overflow: visible; background: #fff; }
+      .deck { display: block; height: auto; overflow: visible; }
+      .slide { width: 100%; height: auto; min-height: 277mm; overflow: visible; break-after: page; page-break-after: always; }
+      .slide:last-child { break-after: auto; page-break-after: auto; }
+      .slide-inner { width: 100%; min-height: 277mm; padding: 6mm 7mm 8mm; }
+      .nav, .swipe-hint { display: none !important; }
+      .team-name { font-size: 14px; margin-bottom: 7px; padding: 5px; }
+      .topline { margin-bottom: 5px; }
+      .hero { margin-bottom: 8px; padding: 11px 14px 13px; }
+      .hero h1 { font-size: 29px; }
+      .hero-meta { margin-top: 6px; padding: 3px 8px; }
+      .motif { font-size: 28px; }
+      .section-label { margin: 9px 2px 6px; }
+      .cards, .match-grid { gap: 7px; }
+      .card { padding: 9px; border-radius: 14px; box-shadow: none; }
+      .card-head { margin-bottom: 6px; }
+      .card-title { font-size: 15px; }
+      .member-list { gap: 4px; }
+      .member { min-height: 32px; padding: 3px 5px 3px 3px; font-size: 10px; }
+      .number { flex-basis: 23px; width: 23px; height: 23px; margin-right: 5px; font-size: 12px; box-shadow: none; }
+      .dodge .member, .tug .member { min-height: 28px; font-size: 8.5px; }
+      .dodge .number, .tug .number { flex-basis: 20px; width: 20px; height: 20px; font-size: 10px; }
+      .match-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .king-banner { margin-bottom: 9px; padding: 7px; font-size: 20px; box-shadow: 0 3px 0 #d9a600; }
+      .strategy { margin-top: 8px; padding: 8px 10px 8px 39px; font-size: 12px; }
+      .strategy::before { top: 7px; left: 10px; font-size: 20px; }
+      .footer-message { margin-top: 8px; padding: 7px; font-size: 9px; line-height: 1.4; }
+      .footer-message strong { font-size: 10px; }
+      .centipede .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .centipede .member-list { grid-template-columns: 1fr; }
+      .centipede .member { flex-direction: row; justify-content: flex-start; min-height: 35px; text-align: left; }
+      .centipede .number { margin: 0 6px 0 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="access-note hidden" id="accessNote" aria-live="polite">
+    <span id="accessText"></span>
+    <button class="copy-link hidden" id="copyLinkButton" type="button">共有URLをコピー</button>
+  </div>
+
+  <main class="deck" id="deck" aria-label="大運動会 チーム作戦スライド">
+
+    <section class="slide obstacle" aria-labelledby="title-1">
+      <div class="slide-inner">
+        <div class="topline">
+          <span class="event-chip">🏁 大運動会 作戦表</span>
+          <span class="page-no">01 / 04</span>
+        </div>
+        <p class="team-name">💚 飛べ！兵馬とヨーイどんまるズ 💚</p>
+        <header class="hero">
+          <span class="motif" aria-hidden="true">🚩</span>
+          <div class="hero-kicker">第1競技</div>
+          <h1 id="title-1">障害物リレー</h1>
+          <div class="hero-meta">各チーム 4名 × 2組</div>
+        </header>
+
+        <div class="section-label">出場順</div>
+        <div class="cards">
+          <article class="card">
+            <div class="card-head"><h2 class="card-title">1組目</h2><span class="card-tag">先発</span></div>
+            <ol class="member-list">
+              <li class="member"><span class="number">1</span>かぜちゃん</li>
+              <li class="member"><span class="number">2</span>ふくちゃん</li>
+              <li class="member"><span class="number">3</span>ひょうま</li>
+              <li class="member"><span class="number">4</span>とみー</li>
+            </ol>
+          </article>
+          <article class="card">
+            <div class="card-head"><h2 class="card-title">2組目</h2><span class="card-tag">後発</span></div>
+            <ol class="member-list">
+              <li class="member"><span class="number">1</span>ヤギオ</li>
+              <li class="member"><span class="number">2</span>まーべらす</li>
+              <li class="member"><span class="number">3</span>まりたん</li>
+              <li class="member"><span class="number">4</span>りよ</li>
+            </ol>
+          </article>
+        </div>
+
+        <div class="strategy">走るだけじゃなく、<br>落ち着きと連携で勝つ！</div>
+        <footer class="footer-message">
+          楽しむから強い。役割があるから燃える。
+          <strong>飛べ！兵馬とヨーイどんまるズ！</strong>
+        </footer>
+        <p class="swipe-hint">← 横にスワイプして次の競技へ →</p>
+      </div>
+    </section>
+
+    <section class="slide dodge" aria-labelledby="title-2">
+      <div class="slide-inner">
+        <div class="topline">
+          <span class="event-chip">🏁 大運動会 作戦表</span>
+          <span class="page-no">02 / 04</span>
+        </div>
+        <p class="team-name">💚 飛べ！兵馬とヨーイどんまるズ 💚</p>
+        <header class="hero">
+          <span class="motif" aria-hidden="true">📣</span>
+          <div class="hero-kicker">第5競技</div>
+          <h1 id="title-2">王様ドッジボール</h1>
+          <div class="hero-meta">各チーム 12名 ｜ 全4戦</div>
+        </header>
+
+        <div class="king-banner"><span class="crown">👑</span> 王様：ひょうま <span class="crown">👑</span></div>
+        <div class="section-label">対戦メンバー</div>
+        <div class="match-grid">
+          <article class="card">
+            <div class="card-head"><h2 class="card-title">1戦目</h2><span class="card-tag">守り切る</span></div>
+            <ol class="member-list">
+              <li class="member king"><span class="number">1</span>ひょうま</li><li class="member"><span class="number">2</span>とみー</li><li class="member"><span class="number">3</span>かぜちゃん</li>
+              <li class="member"><span class="number">4</span>ヤギオ</li><li class="member"><span class="number">5</span>まーべらす</li><li class="member"><span class="number">6</span>まりたん</li>
+              <li class="member"><span class="number">7</span>りよ</li><li class="member"><span class="number">8</span>ふくちゃん</li><li class="member"><span class="number">9</span>キャメ</li>
+              <li class="member"><span class="number">10</span>たくちゃん</li><li class="member"><span class="number">11</span>まさたか</li><li class="member"><span class="number">12</span>レオっち</li>
+            </ol>
+          </article>
+          <article class="card">
+            <div class="card-head"><h2 class="card-title">2戦目</h2><span class="card-tag">声を出す</span></div>
+            <ol class="member-list">
+              <li class="member king"><span class="number">1</span>ひょうま</li><li class="member"><span class="number">2</span>とみー</li><li class="member"><span class="number">3</span>かぜちゃん</li>
+              <li class="member"><span class="number">4</span>ヤギオ</li><li class="member"><span class="number">5</span>まーべらす</li><li class="member"><span class="number">6</span>まりたん</li>
+              <li class="member"><span class="number">7</span>りよ</li><li class="member"><span class="number">8</span>ふくちゃん</li><li class="member"><span class="number">9</span>キャメ</li>
+              <li class="member"><span class="number">10</span>たくちゃん</li><li class="member"><span class="number">11</span>ＳＳ</li><li class="member"><span class="number">12</span>小川さん</li>
+            </ol>
+          </article>
+          <article class="card">
+            <div class="card-head"><h2 class="card-title">3戦目</h2><span class="card-tag">連携する</span></div>
+            <ol class="member-list">
+              <li class="member king"><span class="number">1</span>ひょうま</li><li class="member"><span class="number">2</span>とみー</li><li class="member"><span class="number">3</span>かぜちゃん</li>
+              <li class="member"><span class="number">4</span>ヤギオ</li><li class="member"><span class="number">5</span>まーべらす</li><li class="member"><span class="number">6</span>まりたん</li>
+              <li class="member"><span class="number">7</span>りよ</li><li class="member"><span class="number">8</span>ふくちゃん</li><li class="member"><span class="number">9</span>キャメ</li>
+              <li class="member"><span class="number">10</span>まさたか</li><li class="member"><span class="number">11</span>ＳＳ</li><li class="member"><span class="number">12</span>小川さん</li>
+            </ol>
+          </article>
+          <article class="card">
+            <div class="card-head"><h2 class="card-title">4戦目</h2><span class="card-tag">最後まで</span></div>
+            <ol class="member-list">
+              <li class="member king"><span class="number">1</span>ひょうま</li><li class="member"><span class="number">2</span>とみー</li><li class="member"><span class="number">3</span>かぜちゃん</li>
+              <li class="member"><span class="number">4</span>ヤギオ</li><li class="member"><span class="number">5</span>まーべらす</li><li class="member"><span class="number">6</span>まりたん</li>
+              <li class="member"><span class="number">7</span>りよ</li><li class="member"><span class="number">8</span>ふくちゃん</li><li class="member"><span class="number">9</span>キャメ</li>
+              <li class="member"><span class="number">10</span>たくちゃん</li><li class="member"><span class="number">11</span>まさたか</li><li class="member"><span class="number">12</span>レオっち</li>
+            </ol>
+          </article>
+        </div>
+
+        <div class="strategy">ひょうま王を守り抜け！<br>無理投げせず、声を出して連携！</div>
+        <footer class="footer-message">
+          楽しむから強い。役割があるから燃える。
+          <strong>飛べ！兵馬とヨーイどんまるズ！</strong>
+        </footer>
+      </div>
+    </section>
+
+    <section class="slide tug" aria-labelledby="title-3">
+      <div class="slide-inner">
+        <div class="topline">
+          <span class="event-chip">🏁 大運動会 作戦表</span>
+          <span class="page-no">03 / 04</span>
+        </div>
+        <p class="team-name">💚 飛べ！兵馬とヨーイどんまるズ 💚</p>
+        <header class="hero">
+          <span class="motif" aria-hidden="true">💪</span>
+          <div class="hero-kicker">第6競技</div>
+          <h1 id="title-3">綱引き</h1>
+          <div class="hero-meta">各チーム 15名 ｜ 全4戦</div>
+        </header>
+
+        <div class="section-label">前方 ① → 最後尾 ⑮</div>
+        <div class="match-grid">
+          <article class="card tug-card">
+            <div class="card-head"><h2 class="card-title">1戦目</h2><span class="card-tag">全員同時</span></div>
+            <div class="direction"><span>▲ 前方</span><span>最後尾 ▼</span></div><div class="rope-line"></div>
+            <ol class="member-list">
+              <li class="member"><span class="number">1</span>ヤギオ</li><li class="member"><span class="number">2</span>ふくちゃん</li><li class="member"><span class="number">3</span>りよ</li>
+              <li class="member"><span class="number">4</span>小川さん</li><li class="member"><span class="number">5</span>ＳＳ</li><li class="member"><span class="number">6</span>かなるん</li>
+              <li class="member"><span class="number">7</span>まさたか</li><li class="member"><span class="number">8</span>たくちゃん</li><li class="member"><span class="number">9</span>レオっち</li>
+              <li class="member"><span class="number">10</span>あやちゃん</li><li class="member"><span class="number">11</span>まりたん</li><li class="member"><span class="number">12</span>ひょうま</li>
+              <li class="member"><span class="number">13</span>とみー</li><li class="member"><span class="number">14</span>まーべらす</li><li class="member"><span class="number">15</span>キャメ</li>
+            </ol>
+          </article>
+          <article class="card tug-card">
+            <div class="card-head"><h2 class="card-title">2戦目</h2><span class="card-tag">腰で引く</span></div>
+            <div class="direction"><span>▲ 前方</span><span>最後尾 ▼</span></div><div class="rope-line"></div>
+            <ol class="member-list">
+              <li class="member"><span class="number">1</span>わーキャプテン</li><li class="member"><span class="number">2</span>なおと</li><li class="member"><span class="number">3</span>ヤギオ</li>
+              <li class="member"><span class="number">4</span>ふくちゃん</li><li class="member"><span class="number">5</span>りよ</li><li class="member"><span class="number">6</span>小川さん</li>
+              <li class="member"><span class="number">7</span>かなるん</li><li class="member"><span class="number">8</span>ＳＳ</li><li class="member"><span class="number">9</span>まさたか</li>
+              <li class="member"><span class="number">10</span>たくちゃん</li><li class="member"><span class="number">11</span>あやちゃん</li><li class="member"><span class="number">12</span>まりたん</li>
+              <li class="member"><span class="number">13</span>とみー</li><li class="member"><span class="number">14</span>まーべらす</li><li class="member"><span class="number">15</span>キャメ</li>
+            </ol>
+          </article>
+          <article class="card tug-card">
+            <div class="card-head"><h2 class="card-title">3戦目</h2><span class="card-tag">低く構える</span></div>
+            <div class="direction"><span>▲ 前方</span><span>最後尾 ▼</span></div><div class="rope-line"></div>
+            <ol class="member-list">
+              <li class="member"><span class="number">1</span>ヤギオ</li><li class="member"><span class="number">2</span>ふくちゃん</li><li class="member"><span class="number">3</span>なおと</li>
+              <li class="member"><span class="number">4</span>小川さん</li><li class="member"><span class="number">5</span>ＳＳ</li><li class="member"><span class="number">6</span>わーキャプテン</li>
+              <li class="member"><span class="number">7</span>たくちゃん</li><li class="member"><span class="number">8</span>まさたか</li><li class="member"><span class="number">9</span>りよ</li>
+              <li class="member"><span class="number">10</span>レオっち</li><li class="member"><span class="number">11</span>まりたん</li><li class="member"><span class="number">12</span>ひょうま</li>
+              <li class="member"><span class="number">13</span>とみー</li><li class="member"><span class="number">14</span>かぜちゃん</li><li class="member"><span class="number">15</span>キャメ</li>
+            </ol>
+          </article>
+          <article class="card tug-card">
+            <div class="card-head"><h2 class="card-title">4戦目</h2><span class="card-tag">タイミング</span></div>
+            <div class="direction"><span>▲ 前方</span><span>最後尾 ▼</span></div><div class="rope-line"></div>
+            <ol class="member-list">
+              <li class="member"><span class="number">1</span>ヤギオ</li><li class="member"><span class="number">2</span>ふくちゃん</li><li class="member"><span class="number">3</span>なおと</li>
+              <li class="member"><span class="number">4</span>小川さん</li><li class="member"><span class="number">5</span>ＳＳ</li><li class="member"><span class="number">6</span>たくちゃん</li>
+              <li class="member"><span class="number">7</span>まさたか</li><li class="member"><span class="number">8</span>レオっち</li><li class="member"><span class="number">9</span>りよ</li>
+              <li class="member"><span class="number">10</span>あやちゃん</li><li class="member"><span class="number">11</span>まりたん</li><li class="member"><span class="number">12</span>ひょうま</li>
+              <li class="member"><span class="number">13</span>とみー</li><li class="member"><span class="number">14</span>かぜちゃん</li><li class="member"><span class="number">15</span>キャメ</li>
+            </ol>
+          </article>
+        </div>
+
+        <div class="strategy">低く！同時に！腰で引く！<br>力よりも、全員のタイミングで勝つ！</div>
+        <footer class="footer-message">
+          楽しむから強い。役割があるから燃える。
+          <strong>飛べ！兵馬とヨーイどんまるズ！</strong>
+        </footer>
+      </div>
+    </section>
+
+    <section class="slide centipede" aria-labelledby="title-4">
+      <div class="slide-inner">
+        <div class="topline">
+          <span class="event-chip">🏁 大運動会 作戦表</span>
+          <span class="page-no">04 / 04</span>
+        </div>
+        <p class="team-name">💚 飛べ！兵馬とヨーイどんまるズ 💚</p>
+        <header class="hero">
+          <span class="motif hachimaki" aria-hidden="true">必勝</span>
+          <div class="hero-kicker">第7競技</div>
+          <h1 id="title-4">ムカデリレー</h1>
+          <div class="hero-meta">5名 × 3組</div>
+        </header>
+
+        <div class="section-label">3組の並び順</div>
+        <div class="cards">
+          <article class="card centipede-card">
+            <div class="card-head"><h2 class="card-title">1組目</h2><span class="card-tag">声を揃える</span></div>
+            <ol class="member-list">
+              <li class="member"><span class="number">1</span>まーべらす</li>
+              <li class="member"><span class="number">2</span>りよ</li>
+              <li class="member"><span class="number">3</span>ふくちゃん</li>
+              <li class="member"><span class="number">4</span>小川さん</li>
+              <li class="member"><span class="number">5</span>かなるん</li>
+            </ol>
+          </article>
+          <article class="card centipede-card">
+            <div class="card-head"><h2 class="card-title">2組目</h2><span class="card-tag">歩幅を揃える</span></div>
+            <ol class="member-list">
+              <li class="member"><span class="number">1</span>ヤギオ</li>
+              <li class="member"><span class="number">2</span>ＳＳ</li>
+              <li class="member"><span class="number">3</span>たくちゃん</li>
+              <li class="member"><span class="number">4</span>まさたか</li>
+              <li class="member"><span class="number">5</span>まりたん</li>
+            </ol>
+          </article>
+          <article class="card centipede-card">
+            <div class="card-head"><h2 class="card-title">3組目</h2><span class="card-tag">転ばない</span></div>
+            <ol class="member-list">
+              <li class="member"><span class="number">1</span>かぜちゃん</li>
+              <li class="member"><span class="number">2</span>とみー</li>
+              <li class="member"><span class="number">3</span>ひょうま</li>
+              <li class="member"><span class="number">4</span>キャメ</li>
+              <li class="member"><span class="number">5</span>あやちゃん</li>
+            </ol>
+          </article>
+        </div>
+
+        <div class="strategy">速くより、揃える！<br>歩幅より、声！<br>転ばなければ勝てる！</div>
+        <footer class="footer-message">
+          楽しむから強い。役割があるから燃える。
+          <strong>飛べ！兵馬とヨーイどんまるズ！</strong>
+        </footer>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav" aria-label="スライド操作">
+    <button class="nav-button" id="prev" type="button" aria-label="前の競技">‹</button>
+    <div class="dots" aria-label="ページ選択">
+      <button class="dot active" type="button" aria-label="1ページ目" data-index="0"></button>
+      <button class="dot" type="button" aria-label="2ページ目" data-index="1"></button>
+      <button class="dot" type="button" aria-label="3ページ目" data-index="2"></button>
+      <button class="dot" type="button" aria-label="4ページ目" data-index="3"></button>
+    </div>
+    <button class="nav-button" id="next" type="button" aria-label="次の競技">›</button>
+  </nav>
+
+  <script>
+    const deck = document.getElementById('deck');
+    const slides = [...document.querySelectorAll('.slide')];
+    const dots = [...document.querySelectorAll('.dot')];
+    const prev = document.getElementById('prev');
+    const next = document.getElementById('next');
+    const accessNote = document.getElementById('accessNote');
+    const accessText = document.getElementById('accessText');
+    const copyLinkButton = document.getElementById('copyLinkButton');
+    let current = 0;
+
+    function goTo(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides[current].scrollTo({ top: 0, behavior: 'instant' });
+      deck.scrollTo({ left: current * deck.clientWidth, behavior: 'smooth' });
+      updateNav();
+    }
+
+    function updateNav() {
+      dots.forEach((dot, index) => dot.classList.toggle('active', index === current));
+      prev.disabled = current === 0;
+      next.disabled = current === slides.length - 1;
+    }
+
+    prev.addEventListener('click', () => goTo(current - 1));
+    next.addEventListener('click', () => goTo(current + 1));
+    dots.forEach(dot => dot.addEventListener('click', () => goTo(Number(dot.dataset.index))));
+    deck.addEventListener('scroll', () => {
+      const index = Math.round(deck.scrollLeft / deck.clientWidth);
+      if (index !== current) { current = index; updateNav(); }
+    }, { passive: true });
+    window.addEventListener('keydown', event => {
+      if (event.key === 'ArrowRight') goTo(current + 1);
+      if (event.key === 'ArrowLeft') goTo(current - 1);
+    });
+    window.addEventListener('resize', () => deck.scrollTo({ left: current * deck.clientWidth }));
+
+    const isFileScheme = location.protocol === 'file:';
+    if (isFileScheme) {
+      accessNote.classList.remove('hidden');
+      accessNote.classList.add('is-warning');
+      accessText.textContent = 'このURLは端末内ファイルです。他の人が見るには、GitHub PagesなどでWeb公開してhttps URLを共有してください。';
+    } else {
+      accessNote.classList.remove('hidden');
+      accessText.textContent = 'このページは公開URLで開かれています。リンクを共有すると誰でもスマホで確認できます。';
+      copyLinkButton.classList.remove('hidden');
+    }
+
+    copyLinkButton.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(location.href);
+        copyLinkButton.textContent = 'コピー済み';
+        setTimeout(() => {
+          copyLinkButton.textContent = '共有URLをコピー';
+        }, 1500);
+      } catch (error) {
+        copyLinkButton.textContent = 'コピー失敗';
+      }
+    });
+
+    updateNav();
+  </script>
+</body>
+</html>
